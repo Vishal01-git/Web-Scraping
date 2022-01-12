@@ -2,6 +2,9 @@
 //   "https://www.espncricinfo.com/series/ipl-2021-1249214/sunrisers-hyderabad-vs-chennai-super-kings-44th-match-1254091/full-scorecard";
 const request = require("request");
 const cheerio = require("cheerio");
+const path = require("path");
+const fs = require("fs");
+const xlsx = require("xlsx");
 
 function AllScorecards(url) {
     request(url, function (err, response, html) {
@@ -42,11 +45,48 @@ function extractMatchDetails(html) {
               let fours = $(allCols[5]).text().trim();
               let sixes = $(allCols[6]).text().trim();
               let sr = $(allCols[7]).text().trim();
-             console.log(`${playerName} ${runs} ${balls} ${fours} ${sixes} ${sr}`);
+                //console.log(`${playerName} ${runs} ${balls} ${fours} ${sixes} ${sr}`);
+                processPlayer(
+                  teamName,
+                  playerName,
+                  runs,
+                  balls,
+                  fours,
+                  sixes,
+                  sr,
+                  opponentName,
+                  venue,
+                  date,
+                  result
+                );
             }
         }
     }
 }
+
+function processPlayer(teamName, playerName, runs, balls, fours, sixes, sr, opponentName, venue, date, result) {
+    let teamPath = path.join(__dirname, "IPL", teamName);
+    dirCreater(teamPath);
+    let filePath = path.join(teamPath, playerName + ".xlsx");
+    let content = excelReader(filePath, playerName);
+    let playerObj = {
+      teamName,
+      playerName,
+      runs,
+      balls,
+      fours,
+      sixes,
+      sr,
+      opponentName,
+      venue,
+      date,
+      result,
+    };
+    content.push(playerObj);
+    excelWriter(filePath, content, playerName);
+}
+
+//create directory
 
 function dirCreater(filePath) {
   if (fs.existsSync(filePath) == false) {
